@@ -79925,7 +79925,7 @@ _nS('controllers.Local'); _root['controllers']['Local']['standalone'] =
 </script>
 
     <!-- This can be used to insert NetLogo code into this page -->
-    <script type="text/nlogo" id="nlogo-code" data-filename="SIR (1).nlogo">globals [
+    <script type="text/nlogo" id="nlogo-code" data-filename="index.nlogo">globals [
   initial-infection-probability
   observed-infection-probability
   total-contacts
@@ -79947,8 +79947,6 @@ _nS('controllers.Local'); _root['controllers']['Local']['standalone'] =
   projected-reproduction-number
 
 
-
-
 ]
 
 turtles-own [
@@ -79965,22 +79963,27 @@ to setup
   let state-choice state-selection
   if state-choice = "Rajasthan" [
     set population-size 800
+
     resize-world -16 16 -16 16
+    set infection-radius 1.33
     set lockdown-transmission-reduction-factor 4.175
   ]
   if state-choice = "Maharashtra" [
     set population-size 1240
+    set infection-radius 1
     resize-world -16 16 -16 16
     set lockdown-transmission-reduction-factor 2.92
   ]
   if state-choice = "Gujarat" [
     set population-size 650
+    set infection-radius 1.67
     resize-world -16 16 -16 16
     set lockdown-transmission-reduction-factor 2.6
   ]
   if state-choice = "Delhi" [
     set population-size 302
-    resize-world -12 12 -12 12
+    resize-world -16 16 -16 16
+    set infection-radius 2
     set lockdown-transmission-reduction-factor 2.15
   ]
 
@@ -79999,13 +80002,14 @@ to setup
   set num-infected count turtles with [status = "I"]
   set max-infected num-infected
 
+
   set initial-infection-probability 0.4
   set infection-probability initial-infection-probability
   set observed-infection-probability initial-infection-probability
 
   set recovery-time 15
-  set lockdown-day 21
-  set infection-radius 1
+  set lockdown-day 7
+
 
   set reproduction-number infection-probability * recovery-time
   set projected-reproduction-number reproduction-number
@@ -80029,8 +80033,8 @@ to go
   ]
 
   update-infected
-  update-total-contacts
-  update-contact-rate
+
+
 
   if total-contacts > 0 [
     set observed-infection-probability current-infected / total-contacts
@@ -80042,24 +80046,31 @@ to go
   tick
   if ticks >= 78 [ stop ]
   if not any? turtles with [status = "I"] [ stop ]
-  wait 0.1
+
 end
 
 ; check-lockdown: Apply lockdown once when tick reaches lockdown-day.
 to check-lockdown
+
   if ticks >= lockdown-day [
-    set infection-probability initial-infection-probability / lockdown-transmission-reduction-factor
+    set infection-probability 0.1
     set reproduction-number infection-probability * recovery-time
     set projected-reproduction-number reproduction-number
-
+    if infection-probability < 0.4 / lockdown-transmission-reduction-factor
+    [
+      set infection-probability infection-probability + 0.01
+    ]
   ]
+
+
+
 end
 
 ; infect: Infected turtles attempt to infect susceptible neighbors.
 to infect
   if status = "I" [
     ask turtles in-radius infection-radius [
-      if status = "S" and random-float 1 < infection-probability [
+      if status = "S" and random-float 100 < infection-probability * 100 [
         set status "I"
         set days-infected 0
         set current-infected current-infected + 1
@@ -80080,6 +80091,7 @@ to recover
   ]
 end
 
+
 ; update-infected: Update current and maximum infected counts.
 to update-infected
   set num-infected count turtles with [status = "I"]
@@ -80088,27 +80100,12 @@ to update-infected
   ]
 end
 
-; update-total-contacts: Sum susceptible contacts around infected turtles.
-to update-total-contacts
-  if any? turtles with [status = "I"] [
-    set total-contacts sum [ count turtles in-radius infection-radius with [status = "S"] ] of turtles with [status = "I"]
-  ]
-end
 
-
-to update-contact-rate
-  if any? turtles with [status = "I"] [
-    let contacts sum [ count turtles in-radius infection-radius with [status = "S"] ] of turtles with [status = "I"]
-    set num-infected count turtles with [status = "I"]
-    set contact-rate contacts / num-infected
-    set effective-contact-rate infection-probability * contact-rate
-  ]
-end
 
 ; move: Randomly turn and move forward one unit.
 to move
   rt random 360
-  fd 1.1
+  fd 1
 end
 
 ; recolor: Set turtle color based on infection status.
@@ -80162,7 +80159,7 @@ population-size
 population-size
 10
 1500
-800.0
+1240.0
 10
 1
 NIL
@@ -80211,7 +80208,7 @@ infection-probability
 infection-probability
 0
 1
-0.09580838323353294
+0.11
 0.1
 1
 NIL
@@ -80233,9 +80230,9 @@ NIL
 HORIZONTAL
 
 PLOT
-713
+726
 10
-1399
+1219
 295
 SIR Dynamics
 Rates
@@ -80260,7 +80257,7 @@ CHOOSER
 state-selection
 state-selection
 "Delhi" "Gujarat" "Maharashtra" "Rajasthan"
-3
+2
 
 MONITOR
 930
@@ -80285,51 +80282,10 @@ num-infected
 11
 
 PLOT
-714
-369
-1050
-519
-Effective Contact Rate
-NIL
-NIL
-0.0
-1.0
-0.0
-1.0
-true
-true
-"" ""
-PENS
-"Projected" 1.0 0 -14070903 true "" "plot infection-probability"
-"Observed" 1.0 0 -8053223 true "" "plot observed-infection-probability"
-
-MONITOR
-714
-532
-807
-577
-Projected ECR
-infection-probability
-17
-1
-11
-
-MONITOR
-807
-532
-901
-577
-Observed ECR
-observed-infection-probability
-17
-1
-11
-
-PLOT
-1050
-369
-1387
-519
+726
+364
+971
+512
 Reproduction Number
 NIL
 NIL
@@ -80341,14 +80297,14 @@ true
 true
 "" ""
 PENS
-"Projected" 1.0 0 -14730904 true "" "plot projected-reproduction-number"
+"Projected" 1.0 1 -14730904 true "" "plot projected-reproduction-number"
 "Observed" 1.0 0 -10873583 true "" "plot observed-reproduction-number"
 
 MONITOR
-1050
-530
-1237
-575
+717
+536
+884
+581
 NIL
 projected-reproduction-number
 17
@@ -80356,10 +80312,10 @@ projected-reproduction-number
 11
 
 MONITOR
-1237
-530
-1423
-575
+883
+536
+1069
+581
 NIL
 observed-reproduction-number
 17
