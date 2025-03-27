@@ -80054,11 +80054,12 @@ to check-lockdown
 
   if ticks >= lockdown-day [
     set infection-probability 0.1
-    set reproduction-number infection-probability * recovery-time
+    set reproduction-number initial-infection-probability / lockdown-transmission-reduction-factor * recovery-time
     set projected-reproduction-number reproduction-number
-    if infection-probability < 0.4 / lockdown-transmission-reduction-factor
+    if infection-probability < initial-infection-probability / lockdown-transmission-reduction-factor
     [
       set infection-probability infection-probability + 0.01
+
     ]
   ]
 
